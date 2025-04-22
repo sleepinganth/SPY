@@ -1,0 +1,58 @@
+I want to trade stock options automatically. So, for example, $SPY calls and puts. (However,
+if this script can be built, I would want to trade this same script/strategy on multiple
+tickers.)
+I think I need to have this built in Python, because I will want to connect this with Interactive
+Brokers via their API for live trading. Please let me know if you know of a better way to make
+this happen. But, I use Interactive Brokers.
+The best way I know how to explain what I am looking for is by using examples. Each
+example includes a screen shot of what I have attempted to describe.
+*all of this is based on a 5 minute ETH chart in the central US time zone (market open from
+8:30am-3:00pm)*
+---------------------------------------------------------------------------------------------------Summary:
+If the price at 9:00am is above the 9 EMA, and the 20 EMA, and the VWAP, then wait until
+the price equals the 9 EMA, and at this moment, enter a long position.
+Exit with $1.00 gain.
+Stop loss a candle body close that’s below the 9 EMA, and the 20 EMA, and the VWAP.
+For short positions; the opposite of everything above.
+This is 1 trade per day, maximum. So, if there is an open trades at 2:55pm, then close this
+trade at 2:55pm.
+No trade taken if the price at 9:00am is anywhere between the 3 lines (2 EMA’s and VWAP).
+It either has to be above all 3, or below all 3.
+
+----------------------------------------------------------------------------------------------------
+
+Monday, April 7, 2025
+-At 9:00am, SPY was above the 9 EMA, and the 20 EMA, and the VWAP.
+-At 9:10am, (or very close to it), SPY’s price equaled SPY’s 9 EMA. So, enter a long position.
+-Sell when price increased by $1.00.
+
+Tuesday, April 8, 2025
+-At 9:00am, SPY was above the 9 EMA, and the 20 EMA, and the VWAP.
+-At 9:30am, (or very close to it), SPY’s price equaled SPY’s 9 EMA. So, enter a long position.
+-Sell when price increased by $1.00.
+
+Wednesday, April 9, 2025
+-At 9:00am, SPY was above the 9 EMA, and the 20 EMA, and the VWAP.
+-A little bit after 9:05am , SPY’s price equaled SPY’s 9 EMA. So, enter a long position.
+-Sell when price increased by $1.00.
+
+Thursday, April 10, 2025
+
+-At 9:00am, SPY was below the 9 EMA, and the 20 EMA, and the VWAP.
+-A little bit after 9:20am (or very close to it), SPY’s price equaled SPY’s 9 EMA. So, enter a
+short position.
+-Sell when price decreased by $1.00.
+
+Friday, April 11, 2025
+-At 9:00am, SPY was above the 9 EMA, and the 20 EMA, and the VWAP.
+-At 9:01am, (or very close to it), SPY’s price equaled SPY’s 9 EMA. So, enter a long position.
+-Sell when price increased by $1.00.
+
+Monday, April 14, 2025
+-At 9:00am, SPY was below the 9 EMA, and the 20 EMA, and the VWAP.
+
+-At 9:01am, (or very close to it), SPY’s price equaled SPY’s 9 EMA. So, enter a short position.
+-At 9:05am, the body of the 9:00am candle closed above all 3 lines, so close the position at
+9:05am (for a loss).
+
+
