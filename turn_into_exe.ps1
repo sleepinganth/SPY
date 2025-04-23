@@ -1,0 +1,1 @@
+pyinstaller --onefile spy_ema_chad.py

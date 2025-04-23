@@ -362,7 +362,6 @@ class SPYEMAChad:
                     print("Unable to retrieve market data. Waiting before retry...")
                     time.sleep(60)  # Wait a minute before trying again
                     continue
-
                 df = self.calculate_indicators(df)
 
                 # Check for force close time
@@ -381,7 +380,6 @@ class SPYEMAChad:
                 if (abs((current_time.hour * 60 + current_time.minute) - 
                         (signal_time.hour * 60 + signal_time.minute)) < 2 and 
                     not self.today_trade_taken and not self.waiting_for_entry):
-                    print('not here')
                     
                     self.initial_condition = self.check_initial_condition(df)
                     
@@ -397,7 +395,6 @@ class SPYEMAChad:
                 
                 # Check for entry if we're waiting
                 if self.waiting_for_entry:
-                    print('not here 3')
                     ticker = self.ib.reqTickers(self.get_contract())[0]
                     current_price = ticker.marketPrice()
                     
