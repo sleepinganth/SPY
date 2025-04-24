@@ -4,6 +4,7 @@ from setuptools import setup
 APP = ['spy_ema_chad.py']
 OPTIONS = {
     'argv_emulation': True,
+    'includes': ['jaraco.text'],
     'packages': [],
 }
 
