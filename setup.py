@@ -1,15 +1,15 @@
+# setup.py
 from setuptools import setup
 
 APP = ['spy_ema_chad.py']
-DATA_FILES = [('', ['custom_bootstrap.py'])]
+DATA_FILES = [('', ['__boot__.py'])]  # <- rename custom_bootstrap.py to __boot__.py
 OPTIONS = {
     'argv_emulation': True,
     'packages': ['pandas', 'numpy', 'ib_insync', 'eventkit', 'nest_asyncio', 'dateutil', 'pytz'],
     'includes': ['numpy.core.multiarray'],
     'excludes': ['wheel', 'setuptools._vendor.wheel'],
-    'site_packages': True,  # Include site-packages
-    'bootstrap': 'custom_bootstrap',  # Use custom bootstrap
-    'optimize': 0,  # Don't optimize - helps with debugging
+    'site_packages': True,
+    'optimize': 0,
 }
 
 setup(
