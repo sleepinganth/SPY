@@ -19,14 +19,16 @@ jobs:
 
       - name: Build .app with py2app
         run: |
-          rm -rf ./build ./dist ./venv_x86
+          rm -rf ./build ./dist ./venv_x86 *.egg-info
           arch -x86_64 python3 -m venv venv_x86
           source venv_x86/bin/activate
           arch -x86_64 pip install --upgrade pip setuptools wheel
           arch -x86_64 pip install --only-binary=:all: numpy pandas
           arch -x86_64 pip install -r requirements.txt
           arch -x86_64 pip install py2app
+          arch -x86_64 python setup.py clean --all
           arch -x86_64 python setup.py py2app --no-strip
+
 
       - name: Upload .app bundle
         uses: actions/upload-artifact@v4
