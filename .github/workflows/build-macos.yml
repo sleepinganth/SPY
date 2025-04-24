@@ -19,7 +19,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          rm -rf build dist venv_x86
+          rm -rf /Users/runner/work/SPYEMAChad/SPYEMAChad/build /Users/runner/work/SPYEMAChad/SPYEMAChad/dist /Users/runner/work/SPYEMAChad/SPYEMAChad/venv_x86
           arch -x86_64 python3 -m venv venv_x86
           source venv_x86/bin/activate
           arch -x86_64 pip install --upgrade pip setuptools wheel
