@@ -4,7 +4,8 @@ from setuptools import setup
 APP = ['spy_ema_chad.py']
 OPTIONS = {
     'argv_emulation': True,
-    'packages': [],
+    'includes': ['pkg_resources', 'cmath'],
+    'packages': ['jaraco', 'jaraco.text', 'pandas'],
 }
 
 setup(
