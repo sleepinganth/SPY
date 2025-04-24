@@ -19,6 +19,7 @@ jobs:
 
       - name: Build .app with py2app
         run: |
+          rm -rf ./build ./dist ./venv_x86 *.egg-info
           pip install --upgrade pip setuptools wheel
           pip install numpy==1.26.4  # Specify a stable version
           pip install pandas==2.2.1  # Specify a stable version
