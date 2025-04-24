@@ -1,0 +1,45 @@
+name: Build and Run macOS App (py2app)
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install py2app
+
+      - name: Build .app with py2app
+        run: python setup.py py2app
+
+      - name: Upload .app bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: MacApp
+          path: dist/*.app
+
+      - name: Run the app's binary
+        run: |
+          chmod +x ./dist/MacApp.app/Contents/MacOS/MacApp
+          ./dist/MacApp.app/Contents/MacOS/MacApp > output.log 2>&1
+
+      - name: Upload output log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-output
+          path: output.log
+      
