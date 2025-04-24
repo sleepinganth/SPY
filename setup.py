@@ -5,7 +5,7 @@ APP = ['spy_ema_chad.py']
 OPTIONS = {
     'argv_emulation': True,
     'includes': ['jaraco.text'],
-    'packages': [],
+    'packages': ['jaraco.text'],
 }
 
 setup(
