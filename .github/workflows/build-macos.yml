@@ -19,11 +19,16 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
-          pip install py2app
+          rm -rf build dist venv_x86
+          arch -x86_64 python3 -m venv venv_x86
+          source venv_x86/bin/activate
+          arch -x86_64 pip install -r requirements.txt
+          arch -x86_64 pip install py2app
 
       - name: Build .app with py2app
-        run: python setup.py py2app --no-strip
+        run: |
+          source venv_x86/bin/activate
+          arch -x86_64 python setup.py py2app --no-strip
 
       - name: Upload .app bundle
         uses: actions/upload-artifact@v4
