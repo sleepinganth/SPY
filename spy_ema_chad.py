@@ -341,7 +341,7 @@ class SPYEMAChad:
         try:
             print(f"Starting SPY EMA CHAD trading strategy for {self.ticker}")
             blah = True
-            while blah:
+            while True:
                 # Check if market is open
                 if not self.is_market_open():
                     if self.position is not None:
