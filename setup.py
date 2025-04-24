@@ -4,6 +4,7 @@ APP = ['spy_ema_chad.py']
 OPTIONS = {
     'argv_emulation': True,
     'packages': [],
+    'excludes': ['wheel', 'setuptools._vendor.wheel'],  # Exclude the problematic packages
 }
 
 setup(
