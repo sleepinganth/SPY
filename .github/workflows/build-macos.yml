@@ -2,7 +2,7 @@ name: Build macOS App
 
 on:
   push:
-    branches: [master]
+    branches: [main]
 
 jobs:
   build-macos:
