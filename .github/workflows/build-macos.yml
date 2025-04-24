@@ -20,7 +20,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install py2app
+          pip install py2app --no-strip
 
       - name: Build .app with py2app
         run: python setup.py py2app
