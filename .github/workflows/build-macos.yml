@@ -34,10 +34,10 @@ jobs:
       - name: Run the app's binary
         run: |
           chmod +x ./dist/MacApp.app/Contents/MacOS/MacApp
-          trap 'echo "::warning::App interrupted. Dumping partial log..."; cat output.log' SIGINT SIGTERM
           ./dist/MacApp.app/Contents/MacOS/MacApp > output.log 2>&1
 
       - name: Upload output log
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: app-output
