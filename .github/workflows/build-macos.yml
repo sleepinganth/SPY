@@ -27,6 +27,8 @@ jobs:
           arch -x86_64 pip install pandas==2.2.1  # Specify a stable version
           arch -x86_64 pip install -r requirements.txt
           arch -x86_64 pip install py2app
+          # Make sure numpy is properly installed outside its source directory
+          arch -x86_64 python -c "import numpy; print(numpy.__version__); print(numpy.__file__)"
           arch -x86_64 python setup.py clean --all
           arch -x86_64 python setup.py py2app --no-strip
 
