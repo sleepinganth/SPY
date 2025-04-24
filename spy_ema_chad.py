@@ -340,8 +340,8 @@ class SPYEMAChad:
         
         try:
             print(f"Starting SPY EMA CHAD trading strategy for {self.ticker}")
-            
-            while True:
+            blah = True
+            while blah:
                 # Check if market is open
                 if not self.is_market_open():
                     if self.position is not None:
@@ -353,17 +353,19 @@ class SPYEMAChad:
                         self.reset_daily_state()
                         
                     print("Market closed. Waiting for next market open.")
-                    time.sleep(60)  # Check again in 1 minute
-                    continue
+                    #time.sleep(60)  # Check again in 1 minute
+                    #continue
                 
                 # Get current data
                 df = self.get_historical_data()
+                print(df)
                 if df is None or len(df) == 0:
                     print("Unable to retrieve market data. Waiting before retry...")
                     time.sleep(60)  # Wait a minute before trying again
                     continue
                 df = self.calculate_indicators(df)
-
+                print(df)
+                
                 # Check for force close time
                 if self.is_force_close_time() and self.position is not None:
                     print("Force close time reached. Closing position.")
@@ -422,6 +424,7 @@ class SPYEMAChad:
                 
                 # Sleep for a short time before checking again
                 time.sleep(1)  # Check every 60 seconds
+                blah = False
                 
         except KeyboardInterrupt:
             print("Strategy stopped by user.")
