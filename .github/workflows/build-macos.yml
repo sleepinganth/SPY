@@ -25,6 +25,12 @@ jobs:
       - name: Build .app with py2app
         run: python setup.py py2app
 
+      - name: Upload .app bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: MacApp
+          path: dist/*.app
+
       - name: Run the app's binary
         run: |
           chmod +x ./dist/MyApp.app/Contents/MacOS/MyApp
@@ -36,8 +42,3 @@ jobs:
           name: app-output
           path: output.log
       
-      - name: Upload .app bundle
-        uses: actions/upload-artifact@v4
-        with:
-          name: MacApp
-          path: dist/*.app
