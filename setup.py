@@ -5,6 +5,7 @@ OPTIONS = {
     'argv_emulation': True,
     'optimize': 0,
     'packages': [],
+    'includes': ['cmath'],
     'site_packages': True,
 }
 
