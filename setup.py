@@ -4,8 +4,8 @@ APP = ['spy_ema_chad.py']
 OPTIONS = {
     'argv_emulation': True,
     'packages': ['pandas', 'numpy', 'cmath'],
-    'includes': ['cmath'],
-    'excludes': [],
+    'includes': ['cmath','pandas._libs.tslibs', 'pandas._libs.tslibs.timestamps', 'pandas._libs.testing'],
+    'excludes': ['numpy.__config__', 'numpy.distutils', 'numpy.f2py', 'numpy.testing'],
     'plist': {
         'CFBundleName': 'MacApp',
     },
