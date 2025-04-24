@@ -1,7 +1,7 @@
 # setup.py
 from setuptools import setup
 
-APP = ['main.py']
+APP = ['spy_ema_chad.py']
 OPTIONS = {
     'argv_emulation': True,
     'packages': [],
