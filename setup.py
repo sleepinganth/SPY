@@ -5,7 +5,6 @@ OPTIONS = {
     'argv_emulation': True,
     'optimize': 0,
     'packages': [],
-    'excludes': ['pkg_resources', 'setuptools', 'jaraco.text'],
     'site_packages': True,
 }
 
