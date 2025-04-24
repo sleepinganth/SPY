@@ -437,6 +437,7 @@ class SPYEMAChad:
             print("Disconnected from Interactive Brokers")
 
 if __name__ == "__main__":
+    print('hi')
     # Create and run the trading strategy
     strategy = SPYEMAChad(
         ticker="SPY",
