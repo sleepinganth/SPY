@@ -37,7 +37,7 @@ jobs:
           ./dist/MyApp.app/Contents/MacOS/MyApp > output.log 2>&1
 
       - name: Upload output log
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: app-output
           path: output.log
