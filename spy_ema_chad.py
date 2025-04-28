@@ -357,12 +357,14 @@ class SPYEMAChad:
                 
                 # Get current data
                 df = self.get_historical_data()
+                print(f"Historical data here: {df}")
                 if df is None or len(df) == 0:
                     print("Unable to retrieve market data. Waiting before retry...")
                     time.sleep(60)  # Wait a minute before trying again
                     continue
                 df = self.calculate_indicators(df)
-                
+                print(f"Indicators here: {df}")
+
                 # Check for force close time
                 if self.is_force_close_time() and self.position is not None:
                     print("Force close time reached. Closing position.")
