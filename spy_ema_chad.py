@@ -340,7 +340,6 @@ class SPYEMAChad:
         
         try:
             print(f"Starting SPY EMA CHAD trading strategy for {self.ticker}")
-            blah = True
             while True:
                 # Check if market is open
                 if not self.is_market_open():
@@ -353,19 +352,19 @@ class SPYEMAChad:
                         self.reset_daily_state()
                         
                     print("Market closed. Waiting for next market open.")
-                    #time.sleep(60)  # Check again in 1 minute
-                    #continue
+                    time.sleep(60)  # Check again in 1 minute
+                    continue
                 
                 # Get current data
                 df = self.get_historical_data()
-                print(df)
+                print(f"Historical data here: {df}")
                 if df is None or len(df) == 0:
                     print("Unable to retrieve market data. Waiting before retry...")
                     time.sleep(60)  # Wait a minute before trying again
                     continue
                 df = self.calculate_indicators(df)
-                print(df)
-                
+                print(f"Indicators here: {df}")
+
                 # Check for force close time
                 if self.is_force_close_time() and self.position is not None:
                     print("Force close time reached. Closing position.")
@@ -414,7 +413,6 @@ class SPYEMAChad:
                 
                 # Check for exit conditions if in a position
                 if self.position is not None:
-                    print('not here 2')
                     # Check profit target
                     if self.check_profit_target():
                         self.exit_position("Profit target reached")
@@ -426,8 +424,7 @@ class SPYEMAChad:
                         continue
                 
                 # Sleep for a short time before checking again
-                time.sleep(1)  # Check every 60 seconds
-                blah = False
+                time.sleep(60)  # Check every 60 seconds
                 
         except KeyboardInterrupt:
             print("Strategy stopped by user.")
