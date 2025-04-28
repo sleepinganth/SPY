@@ -397,9 +397,12 @@ class SPYEMAChad:
                 
                 # Check for entry if we're waiting
                 if self.waiting_for_entry:
-                    ticker = self.ib.reqTickers(self.get_contract())[0]
-                    current_price = ticker.marketPrice()
-                    
+                    tickers = self.ib.reqTickers(self.get_contract())
+                    print(tickers)
+                    if not tickers:
+                        print("No market data available. Delayed data or no subscription.")
+                        return None  # or raise a custom error, or use a fallback
+                    current_price = tickers[0].marketPrice()
                     # Get current 9 EMA value
                     latest_data = df.iloc[-1]
                     ema_short_price = latest_data['ema_short']
