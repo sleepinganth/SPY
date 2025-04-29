@@ -139,9 +139,17 @@ class SPYEMAChad:
         Returns:
             str: "ABOVE", "BELOW", or None
         """
+        if df is None or len(df) == 0:
+            print("No data available. Cannot check initial conditions.")
+            return None
+            
         # Get current day's data
         today = datetime.datetime.now(self.tz).date()
         today_df = df[df['day'] == today]
+        
+        if len(today_df) == 0:
+            print(f"No data available for today ({today}). Cannot check initial conditions.")
+            return None
         
         # Find the bar closest to 9:00 AM
         signal_time = pd.to_datetime(f"{today} {self.signal_time}")
@@ -151,22 +159,46 @@ class SPYEMAChad:
             signal_time = self.tz.localize(signal_time)
         
         # Make sure dates in dataframe are timezone aware before comparison
-        if len(today_df) > 0 and today_df['date'].iloc[0].tzinfo is None:
-            today_df['date'] = today_df['date'].dt.tz_localize(self.tz)
+        try:
+            if today_df['date'].iloc[0].tzinfo is None:
+                today_df['date'] = today_df['date'].dt.tz_localize(self.tz)
+        except IndexError:
+            print("Error accessing date column. DataFrame might be empty or malformed.")
+            return None
+        
+        # Calculate time differences and find closest bar
+        try:
+            time_diffs = (today_df['date'] - signal_time).abs()
+            if len(time_diffs) == 0:
+                print(f"No data points available around signal time ({signal_time}).")
+                return None
+                
+            closest_bar_idx = time_diffs.idxmin()
+            if closest_bar_idx not in today_df.index:
+                print(f"Invalid index {closest_bar_idx} found. Cannot determine closest bar.")
+                return None
+                
+            closest_bar = today_df.loc[closest_bar_idx]
             
-        closest_bar = today_df.iloc[today_df['date'].sub(signal_time).abs().idxmin()]
-        
-        price = closest_bar['close']
-        ema_short = closest_bar['ema_short']
-        ema_long = closest_bar['ema_long']
-        vwap = closest_bar['vwap']
-        
-        # Check conditions
-        if price > ema_short and price > ema_long and price > vwap:
-            return "ABOVE"
-        elif price < ema_short and price < ema_long and price < vwap:
-            return "BELOW"
-        else:
+            # Log the time difference for debugging
+            time_diff = (closest_bar['date'] - signal_time).total_seconds() / 60  # in minutes
+            print(f"Using bar at {closest_bar['date']} (diff: {time_diff:.1f} minutes from signal time)")
+            
+            price = closest_bar['close']
+            ema_short = closest_bar['ema_short']
+            ema_long = closest_bar['ema_long']
+            vwap = closest_bar['vwap']
+            
+            # Check conditions
+            if price > ema_short and price > ema_long and price > vwap:
+                return "ABOVE"
+            elif price < ema_short and price < ema_long and price < vwap:
+                return "BELOW"
+            else:
+                return None
+                
+        except Exception as e:
+            print(f"Error calculating initial conditions: {str(e)}")
             return None
     
     def check_for_entry(self, current_price, ema_short_price):
@@ -441,7 +473,7 @@ if __name__ == "__main__":
     # Create and run the trading strategy
     strategy = SPYEMAChad(
         ticker="SPY",
-        profit_target=1.0,
+        profit_target=0.5,
         paper_trading=True  # Set to False for live trading
     )
     strategy.run() 
