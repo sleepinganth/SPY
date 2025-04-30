@@ -139,6 +139,7 @@ class SPYEMAChad:
         Returns:
             str: "ABOVE", "BELOW", or None
         """
+        print(f"Checking initial condition with data: {df}")
         if df is None or len(df) == 0:
             print("No data available. Cannot check initial conditions.")
             return None
@@ -146,6 +147,8 @@ class SPYEMAChad:
         # Get current day's data
         today = datetime.datetime.now(self.tz).date()
         today_df = df[df['day'] == today]
+
+        print(f"Today's data: {today_df}")
         
         if len(today_df) == 0:
             print(f"No data available for today ({today}). Cannot check initial conditions.")
@@ -169,16 +172,20 @@ class SPYEMAChad:
         # Calculate time differences and find closest bar
         try:
             time_diffs = (today_df['date'] - signal_time).abs()
+            print(f"Time diffs: {time_diffs}")
             if len(time_diffs) == 0:
                 print(f"No data points available around signal time ({signal_time}).")
                 return None
                 
-            closest_bar_idx = time_diffs.idxmin()
+            closest_bar_idx = time_diffs.idxmax()
+            print(f"Closest bar index: {closest_bar_idx}")
             if closest_bar_idx not in today_df.index:
                 print(f"Invalid index {closest_bar_idx} found. Cannot determine closest bar.")
                 return None
                 
             closest_bar = today_df.loc[closest_bar_idx]
+
+            print(f"Closest bar: {closest_bar}")
             
             # Log the time difference for debugging
             time_diff = (closest_bar['date'] - signal_time).total_seconds() / 60  # in minutes
@@ -411,7 +418,7 @@ class SPYEMAChad:
                 
                 # Around 9:00 AM, check initial conditions if we haven't done so today
                 if (abs((current_time.hour * 60 + current_time.minute) - 
-                        (signal_time.hour * 60 + signal_time.minute)) < 2 and 
+                        (signal_time.hour * 60 + signal_time.minute)) < 2000 and 
                     not self.today_trade_taken and not self.waiting_for_entry):
                     
                     self.initial_condition = self.check_initial_condition(df)
@@ -469,7 +476,6 @@ class SPYEMAChad:
             print("Disconnected from Interactive Brokers")
 
 if __name__ == "__main__":
-    print('hi')
     # Create and run the trading strategy
     strategy = SPYEMAChad(
         ticker="SPY",
