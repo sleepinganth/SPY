@@ -139,18 +139,19 @@ class SPYEMAChad:
         Returns:
             str: "ABOVE", "BELOW", or None
         """    
-        price = df
-        ema_short = df_5.iloc[-1]['ema_short']
-        ema_long = df_5.iloc[-1]['ema_long']
-        vwap = df_5.iloc[-1]['vwap']
+        try:
+            price = df
+            ema_short = df_5.iloc[-1]['ema_short']
+            ema_long = df_5.iloc[-1]['ema_long']
+            vwap = df_5.iloc[-1]['vwap']
             
             # Check conditions
-        if price > ema_short and price > ema_long and price > vwap:
-            return "ABOVE"
-        elif price < ema_short and price < ema_long and price < vwap:
-            return "BELOW"
-        else:
-            return None
+            if price > ema_short and price > ema_long and price > vwap:
+                return "ABOVE"
+            elif price < ema_short and price < ema_long and price < vwap:
+                return "BELOW"
+            else:
+                return None
                 
         except Exception as e:
             print(f"Error calculating initial conditions: {str(e)}")
