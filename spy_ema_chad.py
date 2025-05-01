@@ -133,7 +133,7 @@ class SPYEMAChad:
         
         return df
     
-    def check_initial_condition(self, df):
+    def check_initial_condition(self, df, df_5):
         """
         Check the initial condition at 9:00 AM
         Returns:
@@ -175,15 +175,15 @@ class SPYEMAChad:
             print(f"Time diffs: {time_diffs}")
             if len(time_diffs) == 0:
                 print(f"No data points available around signal time ({signal_time}).")
-                closest_bar_idx = today_df['date']
-            else:
-                closest_bar_idx = time_diffs.idxmax()
+                return None
+            
+            closest_bar_idx = time_diffs.idxmax()
             print(f"Closest bar index: {closest_bar_idx}")
             if closest_bar_idx not in today_df.index:
                 print(f"Invalid index {closest_bar_idx} found. Cannot determine closest bar.")
                 return None
                 
-            closest_bar = today_df.loc[closest_bar_idx]
+            closest_bar = today_df.loc[closest_bar_idx + 1]
 
             print(f"Closest bar: {closest_bar}")
             
@@ -192,9 +192,9 @@ class SPYEMAChad:
             print(f"Using bar at {closest_bar['date']} (diff: {time_diff:.1f} minutes from signal time)")
             
             price = closest_bar['close']
-            ema_short = closest_bar['ema_short']
-            ema_long = closest_bar['ema_long']
-            vwap = closest_bar['vwap']
+            ema_short = df_5.iloc[-1]['ema_short']
+            ema_long = df_5.iloc[-1]['ema_long']
+            vwap = df_5.iloc[-1]['vwap']
             
             # Check conditions
             if price > ema_short and price > ema_long and price > vwap:
@@ -415,13 +415,15 @@ class SPYEMAChad:
                 now = datetime.datetime.now(self.tz)
                 current_time = now.time()
                 signal_time = datetime.datetime.strptime(self.signal_time, "%H:%M:%S").time()
+
+                
                 
                 # Around 9:00 AM, check initial conditions if we haven't done so today
                 if (abs((current_time.hour * 60 + current_time.minute) - 
                         (signal_time.hour * 60 + signal_time.minute)) < 20 and 
                     not self.today_trade_taken and not self.waiting_for_entry):
                     
-                    self.initial_condition = self.check_initial_condition(df)
+                    self.initial_condition = self.check_initial_condition(df=self.get_historical_data(duration='1 H', bar_size='1 seconds'), df_5=df)
                     
                     if self.initial_condition == "ABOVE":
                         print(f"{now}: Initial condition: Price ABOVE all indicators. Waiting for price to touch 9 EMA for LONG entry.")
