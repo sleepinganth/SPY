@@ -11,7 +11,7 @@ from ib_insync import *
 
 class SPYEMAChad:
     def __init__(self, ticker="SPY", profit_target=1.0, market_open="08:30:00", 
-                 market_close="15:00:00", signal_time="11:00:00", force_close_time="14:55:00",
+                 market_close="15:00:00", signal_time="12:00:00", force_close_time="14:55:00",
                  timeframe="5 mins", ema_short=9, ema_long=20, paper_trading=True):
         """
         Initialize the trading strategy with parameters
