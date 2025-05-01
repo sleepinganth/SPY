@@ -80,7 +80,7 @@ class SPYEMAChad:
         contract = Stock(self.ticker, 'SMART', 'USD')
         return contract
     
-    def get_historical_data(self, duration='2 D', bar_size='5 mins', max_retries=3):
+    def get_historical_data(self, duration='1 H', bar_size='5 mins', max_retries=3):
         """Get historical data for calculations"""
         contract = self.get_contract()
         
@@ -138,71 +138,19 @@ class SPYEMAChad:
         Check the initial condition at 9:00 AM
         Returns:
             str: "ABOVE", "BELOW", or None
-        """
-        print(f"Checking initial condition with data: {df}")
-        if df is None or len(df) == 0:
-            print("No data available. Cannot check initial conditions.")
-            return None
-            
-        # Get current day's data
-        today = datetime.datetime.now(self.tz).date()
-        today_df = df[df['day'] == today]
-
-        print(f"Today's data: {today_df}")
-        
-        if len(today_df) == 0:
-            print(f"No data available for today ({today}). Cannot check initial conditions.")
-            return None
-        
-        # Find the bar closest to 9:00 AM
-        signal_time = pd.to_datetime(f"{today} {self.signal_time}")
-        
-        # Only localize if not already localized
-        if signal_time.tzinfo is None:
-            signal_time = self.tz.localize(signal_time)
-        
-        # Make sure dates in dataframe are timezone aware before comparison
-        try:
-            if today_df['date'].iloc[0].tzinfo is None:
-                today_df['date'] = today_df['date'].dt.tz_localize(self.tz)
-        except IndexError:
-            print("Error accessing date column. DataFrame might be empty or malformed.")
-            return None
-        
-        # Calculate time differences and find closest bar
-        try:
-            time_diffs = (today_df['date'] - signal_time).abs()
-            print(f"Time diffs: {time_diffs}")
-            if len(time_diffs) == 0:
-                print(f"No data points available around signal time ({signal_time}).")
-                return None
-            
-            closest_bar_idx = time_diffs.idxmax()
-            print(f"Closest bar index: {closest_bar_idx}")
-            if closest_bar_idx not in today_df.index:
-                print(f"Invalid index {closest_bar_idx} found. Cannot determine closest bar.")
-                return None
-                
-            closest_bar = today_df.loc[closest_bar_idx + 1]
-
-            print(f"Closest bar: {closest_bar}")
-            
-            # Log the time difference for debugging
-            time_diff = (closest_bar['date'] - signal_time).total_seconds() / 60  # in minutes
-            print(f"Using bar at {closest_bar['date']} (diff: {time_diff:.1f} minutes from signal time)")
-            
-            price = closest_bar['close']
-            ema_short = df_5.iloc[-1]['ema_short']
-            ema_long = df_5.iloc[-1]['ema_long']
-            vwap = df_5.iloc[-1]['vwap']
+        """    
+        price = df
+        ema_short = df_5.iloc[-1]['ema_short']
+        ema_long = df_5.iloc[-1]['ema_long']
+        vwap = df_5.iloc[-1]['vwap']
             
             # Check conditions
-            if price > ema_short and price > ema_long and price > vwap:
-                return "ABOVE"
-            elif price < ema_short and price < ema_long and price < vwap:
-                return "BELOW"
-            else:
-                return None
+        if price > ema_short and price > ema_long and price > vwap:
+            return "ABOVE"
+        elif price < ema_short and price < ema_long and price < vwap:
+            return "BELOW"
+        else:
+            return None
                 
         except Exception as e:
             print(f"Error calculating initial conditions: {str(e)}")
@@ -232,7 +180,7 @@ class SPYEMAChad:
             return True
         return False
     
-    def check_stop_loss(self, df):
+    def check_stop_loss(self, cp, df):
         """
         Check if stop loss conditions are met
         Returns:
@@ -244,7 +192,7 @@ class SPYEMAChad:
         # Get the last completed candle
         last_candle = df.iloc[-2]
         
-        price = last_candle['close']
+        price = cp
         ema_short = last_candle['ema_short']
         ema_long = last_candle['ema_long']
         vwap = last_candle['vwap']
@@ -415,6 +363,12 @@ class SPYEMAChad:
                 now = datetime.datetime.now(self.tz)
                 current_time = now.time()
                 signal_time = datetime.datetime.strptime(self.signal_time, "%H:%M:%S").time()
+                tickers = self.ib.reqTickers(self.get_contract())
+                print(tickers)
+                if not tickers:
+                    print("No market data available. Delayed data or no subscription.")
+                    return None  # or raise a custom error, or use a fallback
+                current_price = tickers[0].marketPrice()
 
                 
                 
@@ -423,7 +377,7 @@ class SPYEMAChad:
                         (signal_time.hour * 60 + signal_time.minute)) < 20 and 
                     not self.today_trade_taken and not self.waiting_for_entry):
                     
-                    self.initial_condition = self.check_initial_condition(df=self.get_historical_data(duration='600 S', bar_size='1 secs'), df_5=df)
+                    self.initial_condition = self.check_initial_condition(df=current_price, df_5=df)
                     
                     if self.initial_condition == "ABOVE":
                         print(f"{now}: Initial condition: Price ABOVE all indicators. Waiting for price to touch 9 EMA for LONG entry.")
@@ -460,12 +414,12 @@ class SPYEMAChad:
                         continue
                     
                     # Check stop loss
-                    if self.check_stop_loss(df):
+                    if self.check_stop_loss(current_price, df):
                         self.exit_position("Stop loss triggered")
                         continue
                 
                 # Sleep for a short time before checking again
-                time.sleep(60)  # Check every 60 seconds
+                time.sleep(1)  # Check every 1 seconds
                 
         except KeyboardInterrupt:
             print("Strategy stopped by user.")
