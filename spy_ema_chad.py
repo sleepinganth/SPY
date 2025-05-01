@@ -175,9 +175,9 @@ class SPYEMAChad:
             print(f"Time diffs: {time_diffs}")
             if len(time_diffs) == 0:
                 print(f"No data points available around signal time ({signal_time}).")
-                return None
-                
-            closest_bar_idx = time_diffs.idxmax()
+                closest_bar_idx = today_df['date']
+            else:
+                closest_bar_idx = time_diffs.idxmax()
             print(f"Closest bar index: {closest_bar_idx}")
             if closest_bar_idx not in today_df.index:
                 print(f"Invalid index {closest_bar_idx} found. Cannot determine closest bar.")
