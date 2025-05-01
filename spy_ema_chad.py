@@ -232,7 +232,7 @@ class SPYEMAChad:
             action (str): "BUY" or "SELL"
             quantity (int): Number of contracts
         """
-        contract = self.get_contract()
+        contract = self.get_spy_option_contract()
         order = MarketOrder(action, quantity)
         trade = self.ib.placeOrder(contract, order)
         self.ib.sleep(1)  # Give IB time to process the order
@@ -254,7 +254,7 @@ class SPYEMAChad:
             self.position = "SHORT"
         
         # Get current price for tracking profit/loss
-        ticker = self.ib.reqTickers(self.get_contract())[0]
+        ticker = self.ib.reqTickers(self.get_spy_option_contract())[0]
         self.entry_price = ticker.marketPrice()
         
         self.today_trade_taken = True
@@ -269,7 +269,7 @@ class SPYEMAChad:
         elif self.position == "SHORT":
             self.place_order("BUY")
         
-        ticker = self.ib.reqTickers(self.get_contract())[0]
+        ticker = self.ib.reqTickers(self.get_spy_option_contract())[0]
         exit_price = ticker.marketPrice()
         profit = exit_price - self.entry_price if self.position == "LONG" else self.entry_price - exit_price
         
@@ -284,7 +284,7 @@ class SPYEMAChad:
         if self.position is None:
             return False
         
-        ticker = self.ib.reqTickers(self.get_contract())[0]
+        ticker = self.ib.reqTickers(self.get_spy_option_contract())[0]
         current_price = ticker.marketPrice()
         
         if (self.position == "LONG" and 
@@ -420,7 +420,7 @@ class SPYEMAChad:
                     latest_data = df.iloc[-1]
                     ema_short_price = latest_data['ema_short']
                     
-                    if self.check_for_entry(current_price_option, ema_short_price):
+                    if self.check_for_entry(current_price, ema_short_price):
                         # Enter position
                         entry_direction = "LONG" if self.initial_condition == "ABOVE" else "SHORT"
                         self.enter_position(entry_direction)
