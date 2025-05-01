@@ -11,7 +11,7 @@ from ib_insync import *
 
 class SPYEMAChad:
     def __init__(self, ticker="SPY", profit_target=1.0, market_open="08:30:00", 
-                 market_close="15:00:00", signal_time="12:00:00", force_close_time="14:55:00",
+                 market_close="15:00:00", signal_time="09:00:00", force_close_time="14:55:00",
                  timeframe="5 mins", ema_short=9, ema_long=20, paper_trading=True):
         """
         Initialize the trading strategy with parameters
@@ -78,6 +78,23 @@ class SPYEMAChad:
         """Get the contract for the specified ticker"""
         print("Getting contract for", self.ticker)
         contract = Stock(self.ticker, 'SMART', 'USD')
+        return contract
+
+    def get_spy_option_contract(self):
+        """Get the 0DTE option contract for SPY"""
+        print("Getting 0DTE option contract for SPY")
+        # Get current date
+        today = datetime.datetime.now(self.tz).date()
+        
+        # Get next Friday (0DTE)
+        days_until_friday = (4 - today.weekday()) % 7
+        expiry = today + datetime.timedelta(days=days_until_friday)
+        
+        # Format expiry as YYYYMMDD
+        expiry_str = expiry.strftime("%Y%m%d")
+        
+        # Create option contract
+        contract = Option('SPY', expiry_str, 0, 'C', 'SMART', '100', 'USD')
         return contract
     
     def get_historical_data(self, duration='1 D', bar_size='5 mins', max_retries=3):
@@ -376,7 +393,7 @@ class SPYEMAChad:
                 
                 # Around 9:00 AM, check initial conditions if we haven't done so today
                 if (abs((current_time.hour * 60 + current_time.minute) - 
-                        (signal_time.hour * 60 + signal_time.minute)) < 20000 and 
+                        (signal_time.hour * 60 + signal_time.minute)) < 3 and 
                     not self.today_trade_taken and not self.waiting_for_entry):
                     
                     self.initial_condition = self.check_initial_condition(df=current_price, df_5=df)
@@ -393,17 +410,17 @@ class SPYEMAChad:
                 
                 # Check for entry if we're waiting
                 if self.waiting_for_entry:
-                    tickers = self.ib.reqTickers(self.get_contract())
+                    tickers = self.ib.reqTickers(self.get_spy_option_contract())
                     print(tickers)
                     if not tickers:
                         print("No market data available. Delayed data or no subscription.")
                         return None  # or raise a custom error, or use a fallback
-                    current_price = tickers[0].marketPrice()
+                    current_price_option = tickers[0].marketPrice()
                     # Get current 9 EMA value
                     latest_data = df.iloc[-1]
                     ema_short_price = latest_data['ema_short']
                     
-                    if self.check_for_entry(current_price, ema_short_price):
+                    if self.check_for_entry(current_price_option, ema_short_price):
                         # Enter position
                         entry_direction = "LONG" if self.initial_condition == "ABOVE" else "SHORT"
                         self.enter_position(entry_direction)
@@ -416,7 +433,7 @@ class SPYEMAChad:
                         continue
                     
                     # Check stop loss
-                    if self.check_stop_loss(current_price, df):
+                    if self.check_stop_loss(current_price_option, df):
                         self.exit_position("Stop loss triggered")
                         continue
                 
