@@ -80,7 +80,7 @@ class SPYEMAChad:
         contract = Stock(self.ticker, 'SMART', 'USD')
         return contract
     
-    def get_historical_data(self, duration='1 H', bar_size='5 mins', max_retries=3):
+    def get_historical_data(self, duration='1 H', bar_size='5 M', max_retries=3):
         """Get historical data for calculations"""
         contract = self.get_contract()
         
