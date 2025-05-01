@@ -423,7 +423,7 @@ class SPYEMAChad:
                         (signal_time.hour * 60 + signal_time.minute)) < 20 and 
                     not self.today_trade_taken and not self.waiting_for_entry):
                     
-                    self.initial_condition = self.check_initial_condition(df=self.get_historical_data(duration='1 H', bar_size='1 seconds'), df_5=df)
+                    self.initial_condition = self.check_initial_condition(df=self.get_historical_data(duration='600 S', bar_size='1 secs'), df_5=df)
                     
                     if self.initial_condition == "ABOVE":
                         print(f"{now}: Initial condition: Price ABOVE all indicators. Waiting for price to touch 9 EMA for LONG entry.")
