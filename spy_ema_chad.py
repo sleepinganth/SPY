@@ -144,6 +144,7 @@ class SPYEMAChad:
             ema_short = df_5.iloc[-1]['ema_short']
             ema_long = df_5.iloc[-1]['ema_long']
             vwap = df_5.iloc[-1]['vwap']
+            print(df_5.iloc[-1])
             
             # Check conditions
             if price > ema_short and price > ema_long and price > vwap:
@@ -170,8 +171,8 @@ class SPYEMAChad:
         if not self.waiting_for_entry:
             return False
         
-        # Allow for some small difference (0.05% of price)
-        touch_threshold = current_price * 0.0005
+        # Allow for some small difference (0.001% of price)
+        touch_threshold = current_price * 0.00001
         
         if (self.initial_condition == "ABOVE" and 
             abs(current_price - ema_short_price) < touch_threshold):
@@ -375,7 +376,7 @@ class SPYEMAChad:
                 
                 # Around 9:00 AM, check initial conditions if we haven't done so today
                 if (abs((current_time.hour * 60 + current_time.minute) - 
-                        (signal_time.hour * 60 + signal_time.minute)) < 2000 and 
+                        (signal_time.hour * 60 + signal_time.minute)) < 20000 and 
                     not self.today_trade_taken and not self.waiting_for_entry):
                     
                     self.initial_condition = self.check_initial_condition(df=current_price, df_5=df)
