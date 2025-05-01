@@ -479,7 +479,7 @@ if __name__ == "__main__":
     # Create and run the trading strategy
     strategy = SPYEMAChad(
         ticker="SPY",
-        profit_target=0.5,
+        profit_target=1.0,
         paper_trading=True  # Set to False for live trading
     )
     strategy.run() 
