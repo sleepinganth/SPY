@@ -188,8 +188,8 @@ class SPYEMAChad:
         if not self.waiting_for_entry:
             return False
         
-        # Allow for some small difference (0.001% of price)
-        touch_threshold = current_price * 0.00001
+        # Allow for some small difference (0.01% of price)
+        touch_threshold = current_price * 0.001
         
         if (self.initial_condition == "ABOVE" and 
             abs(current_price - ema_short_price) < touch_threshold):
