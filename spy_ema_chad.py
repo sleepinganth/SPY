@@ -189,7 +189,7 @@ class SPYEMAChad:
             return False
         
         # Allow for some small difference (0.01% of price)
-        touch_threshold = current_price * 0.001
+        touch_threshold = current_price * 0.0005
         
         if (self.initial_condition == "ABOVE" and 
             abs(current_price - ema_short_price) < touch_threshold):
@@ -393,7 +393,7 @@ class SPYEMAChad:
                 
                 # Around 9:00 AM, check initial conditions if we haven't done so today
                 if (abs((current_time.hour * 60 + current_time.minute) - 
-                        (signal_time.hour * 60 + signal_time.minute)) < 3 and 
+                        (signal_time.hour * 60 + signal_time.minute)) < 50 and 
                     not self.today_trade_taken and not self.waiting_for_entry):
                     
                     self.initial_condition = self.check_initial_condition(df=current_price, df_5=df)
