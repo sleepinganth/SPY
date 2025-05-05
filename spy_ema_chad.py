@@ -12,7 +12,7 @@ from ib_insync import *
 class SPYEMAChad:
     def __init__(self, ticker="SPY", profit_target=1.0, market_open="08:30:00", 
                  market_close="15:00:00", signal_time="09:00:00", force_close_time="14:55:00",
-                 timeframe="5 mins", ema_short=9, ema_long=20, paper_trading=True):
+                 timeframe="5 mins", ema_short=9, ema_long=20, paper_trading=True, threshold=0.0003, trading_time=5):
         """
         Initialize the trading strategy with parameters
         
@@ -27,6 +27,8 @@ class SPYEMAChad:
             ema_short (int): Short EMA period
             ema_long (int): Long EMA period
             paper_trading (bool): Whether to use paper trading
+            threshold (float): Threshold for entry conditions
+            trading_time (int): Time in minutes to trade
         """
         self.ticker = ticker
         self.profit_target = profit_target
@@ -38,7 +40,8 @@ class SPYEMAChad:
         self.ema_short = ema_short
         self.ema_long = ema_long
         self.paper_trading = paper_trading
-        
+        self.threshold = threshold
+        self.trading_time = trading_time
         # Initialize trading state
         self.position = None  # None, "LONG", or "SHORT"
         self.entry_price = 0
@@ -206,7 +209,7 @@ class SPYEMAChad:
             return False
         
         # Allow for some small difference (0.01% of price)
-        touch_threshold = current_price * 0.0003
+        touch_threshold = current_price * self.threshold
         
         if (self.initial_condition == "ABOVE" and 
             abs(current_price - ema_short_price) < touch_threshold):
@@ -410,7 +413,7 @@ class SPYEMAChad:
                 
                 # Around 9:00 AM, check initial conditions if we haven't done so today
                 if (abs((current_time.hour * 60 + current_time.minute) - 
-                        (signal_time.hour * 60 + signal_time.minute)) < 1000 and 
+                        (signal_time.hour * 60 + signal_time.minute)) < self.trading_time and 
                     not self.today_trade_taken and not self.waiting_for_entry):
                     
                     self.initial_condition = self.check_initial_condition(df=current_price, df_5=df)
@@ -468,10 +471,41 @@ class SPYEMAChad:
             print("Disconnected from Interactive Brokers")
 
 if __name__ == "__main__":
+    import argparse
+    
+    # Create argument parser
+    parser = argparse.ArgumentParser(description='SPY EMA CHAD Trading Strategy')
+    
+    # Add arguments
+    parser.add_argument('--ticker', type=str, default='SPY', help='Ticker symbol to trade')
+    parser.add_argument('--profit_target', type=float, default=1.0, help='Target profit in dollars per contract')
+    parser.add_argument('--market_open', type=str, default='08:30:00', help='Market open time (HH:MM:SS)')
+    parser.add_argument('--market_close', type=str, default='15:00:00', help='Market close time (HH:MM:SS)')
+    parser.add_argument('--signal_time', type=str, default='09:00:00', help='Time to check initial conditions (HH:MM:SS)')
+    parser.add_argument('--force_close_time', type=str, default='14:55:00', help='Time to force close positions (HH:MM:SS)')
+    parser.add_argument('--timeframe', type=str, default='5 mins', help='Chart timeframe')
+    parser.add_argument('--ema_short', type=int, default=9, help='Short EMA period')
+    parser.add_argument('--ema_long', type=int, default=20, help='Long EMA period')
+    parser.add_argument('--paper_trading', action='store_true', help='Use paper trading')
+    parser.add_argument('--threshold', type=float, default=0.0003, help='Threshold for entry conditions')
+    parser.add_argument('--trading_time', type=int, default=5, help='Time in minutes to trade')
+    
+    # Parse arguments
+    args = parser.parse_args()
+    
     # Create and run the trading strategy
     strategy = SPYEMAChad(
-        ticker="SPY",
-        profit_target=1.0,
-        paper_trading=True  # Set to False for live trading
+        ticker=args.ticker,
+        profit_target=args.profit_target,
+        market_open=args.market_open,
+        market_close=args.market_close,
+        signal_time=args.signal_time,
+        force_close_time=args.force_close_time,
+        timeframe=args.timeframe,
+        ema_short=args.ema_short,
+        ema_long=args.ema_long,
+        paper_trading=args.paper_trading,
+        threshold=args.threshold,
+        trading_time=args.trading_time
     )
-    strategy.run() 
+    strategy.run()
