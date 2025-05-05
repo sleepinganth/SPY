@@ -95,6 +95,12 @@ class SPYEMAChad:
         
         # Create option contract
         contract = Option('SPY', expiry_str, 0, 'C', 'SMART', '100', 'USD')
+        details = self.ib.reqContractDetails(contract)
+
+        if details:
+            resolved_contract = details[0].contract
+            self.ib.qualifyContracts(resolved_contract)  # optional but often safer
+
         return contract
     
     def get_historical_data(self, duration='1 D', bar_size='5 mins', max_retries=3):
@@ -189,7 +195,7 @@ class SPYEMAChad:
             return False
         
         # Allow for some small difference (0.01% of price)
-        touch_threshold = current_price * 0.0005
+        touch_threshold = current_price * 0.0003
         
         if (self.initial_condition == "ABOVE" and 
             abs(current_price - ema_short_price) < touch_threshold):
@@ -393,7 +399,7 @@ class SPYEMAChad:
                 
                 # Around 9:00 AM, check initial conditions if we haven't done so today
                 if (abs((current_time.hour * 60 + current_time.minute) - 
-                        (signal_time.hour * 60 + signal_time.minute)) < 50000 and 
+                        (signal_time.hour * 60 + signal_time.minute)) < 5 and 
                     not self.today_trade_taken and not self.waiting_for_entry):
                     
                     self.initial_condition = self.check_initial_condition(df=current_price, df_5=df)
