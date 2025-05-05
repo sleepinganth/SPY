@@ -271,7 +271,7 @@ class SPYEMAChad:
             self.position = "SHORT"
         
         # Get current price for tracking profit/loss
-        ticker = self.ib.reqTickers(self.get_spy_option_contract())[0]
+        ticker = self.ib.reqTickers(self.get_contract())[0]
         self.entry_price = ticker.marketPrice()
         
         self.today_trade_taken = True
@@ -286,7 +286,7 @@ class SPYEMAChad:
         elif self.position == "SHORT":
             self.place_order("BUY")
         
-        ticker = self.ib.reqTickers(self.get_spy_option_contract())[0]
+        ticker = self.ib.reqTickers(self.get_contract())[0]
         exit_price = ticker.marketPrice()
         profit = exit_price - self.entry_price if self.position == "LONG" else self.entry_price - exit_price
         
@@ -301,7 +301,7 @@ class SPYEMAChad:
         if self.position is None:
             return False
         
-        ticker = self.ib.reqTickers(self.get_spy_option_contract())[0]
+        ticker = self.ib.reqTickers(self.get_contract())[0]
         current_price = ticker.marketPrice()
         
         if (self.position == "LONG" and 
@@ -450,7 +450,7 @@ class SPYEMAChad:
                         continue
                     
                     # Check stop loss
-                    if self.check_stop_loss(current_price_option, df):
+                    if self.check_stop_loss(current_price, df):
                         self.exit_position("Stop loss triggered")
                         continue
                 
