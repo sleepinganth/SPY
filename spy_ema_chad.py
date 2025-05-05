@@ -93,15 +93,26 @@ class SPYEMAChad:
         # Format expiry as YYYYMMDD
         expiry_str = expiry.strftime("%Y%m%d")
         
-        # Create option contract
-        contract = Option('SPY', expiry_str, 0, 'C', 'SMART', '100', 'USD')
-        details = self.ib.reqContractDetails(contract)
+        # Determine ATM strike price
+        stock_contract = self.get_contract()
+        ticker = self.ib.reqTickers(stock_contract)[0]
+        spot_price = ticker.marketPrice()
+        strike_price = round(spot_price)
 
+        # Create option contract at ATM strike
+        option_contract = Option(symbol=self.ticker,
+                                 lastTradeDateOrContractMonth=expiry_str,
+                                 strike=strike_price,
+                                 right='C',
+                                 exchange='SMART',
+                                 multiplier='100',
+                                 currency='USD')
+        details = self.ib.reqContractDetails(option_contract)
         if details:
-            resolved_contract = details[0].contract
-            self.ib.qualifyContracts(resolved_contract)  # optional but often safer
-
-        return contract
+            option_contract = details[0].contract
+            self.ib.qualifyContracts(option_contract)
+        print(option_contract)
+        return option_contract
     
     def get_historical_data(self, duration='1 D', bar_size='5 mins', max_retries=3):
         """Get historical data for calculations"""
@@ -399,7 +410,7 @@ class SPYEMAChad:
                 
                 # Around 9:00 AM, check initial conditions if we haven't done so today
                 if (abs((current_time.hour * 60 + current_time.minute) - 
-                        (signal_time.hour * 60 + signal_time.minute)) < 10 and 
+                        (signal_time.hour * 60 + signal_time.minute)) < 1000 and 
                     not self.today_trade_taken and not self.waiting_for_entry):
                     
                     self.initial_condition = self.check_initial_condition(df=current_price, df_5=df)
