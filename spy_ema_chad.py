@@ -49,6 +49,7 @@ class SPYEMAChad:
         self.today_trade_taken = False
         self.waiting_for_entry = False
         self.initial_condition = None  # "ABOVE", "BELOW", or None
+        self.option = None
         
         # Time zone for US Central Time
         self.tz = pytz.timezone('US/Central')
@@ -256,7 +257,9 @@ class SPYEMAChad:
             quantity (int): Number of contracts
         """
         option_type = 'C' if self.position == "LONG" else 'P'
-        contract = self.get_spy_option_contract(option_type)
+        if self.option is None:
+            self.option = self.get_spy_option_contract(option_type)
+        contract = self.option
         order = MarketOrder(action, quantity)
         trade = self.ib.placeOrder(contract, order)
         self.ib.sleep(1)  # Give IB time to process the order
