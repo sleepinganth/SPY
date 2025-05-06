@@ -83,8 +83,11 @@ class SPYEMAChad:
         contract = Stock(self.ticker, 'SMART', 'USD')
         return contract
 
-    def get_spy_option_contract(self):
-        """Get the 0DTE option contract for SPY"""
+    def get_spy_option_contract(self, option_type='C'):
+        """Get the 0DTE option contract for SPY
+        Args:
+            option_type (str): 'C' for Call, 'P' for Put
+        """
         print("Getting 0DTE option contract for SPY")
         # Get current date
         today = datetime.datetime.now(self.tz).date()
@@ -106,7 +109,7 @@ class SPYEMAChad:
         option_contract = Option(symbol=self.ticker,
                                  lastTradeDateOrContractMonth=expiry_str,
                                  strike=strike_price,
-                                 right='C',
+                                 right=option_type,
                                  exchange='SMART',
                                  multiplier='100',
                                  currency='USD')
@@ -252,7 +255,8 @@ class SPYEMAChad:
             action (str): "BUY" or "SELL"
             quantity (int): Number of contracts
         """
-        contract = self.get_spy_option_contract()
+        option_type = 'C' if self.position == "LONG" else 'P'
+        contract = self.get_spy_option_contract(option_type)
         order = MarketOrder(action, quantity)
         trade = self.ib.placeOrder(contract, order)
         self.ib.sleep(1)  # Give IB time to process the order
@@ -430,12 +434,7 @@ class SPYEMAChad:
                 
                 # Check for entry if we're waiting
                 if self.waiting_for_entry:
-                    tickers = self.ib.reqTickers(self.get_spy_option_contract())
-                    print(tickers)
-                    if not tickers:
-                        print("No market data available. Delayed data or no subscription.")
-                        return None  # or raise a custom error, or use a fallback
-                    current_price_option = tickers[0].marketPrice()
+                    # Determine option type based on initial condition
                     # Get current 9 EMA value
                     latest_data = df.iloc[-1]
                     ema_short_price = latest_data['ema_short']
