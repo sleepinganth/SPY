@@ -2,7 +2,7 @@ from setuptools import setup
 
 APP = ['spy_ema_chad.py']
 OPTIONS = {
-    'argv_emulation': True,
+    'argv_emulation': False,
     'optimize': 0,
     'packages': [],
     'includes': ['cmath'],
