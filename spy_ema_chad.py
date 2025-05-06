@@ -490,7 +490,7 @@ if __name__ == "__main__":
     parser.add_argument('--ema_long', type=int, default=20, help='Long EMA period')
     parser.add_argument('--paper_trading', action='store_true', help='Use paper trading')
     parser.add_argument('--threshold', type=float, default=0.0003, help='Threshold for entry conditions')
-    parser.add_argument('--trading_time', type=int, default=5, help='Time in minutes to trade')
+    parser.add_argument('--trading_time', type=int, default=500, help='Time in minutes to trade')
     
     # Parse arguments
     args = parser.parse_args()
