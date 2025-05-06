@@ -274,11 +274,11 @@ class SPYEMAChad:
             direction (str): "LONG" or "SHORT"
         """
         if direction == "LONG":
-            self.place_order("BUY")
             self.position = "LONG"
+            self.place_order("BUY")
         else:
-            self.place_order("SELL")
             self.position = "SHORT"
+            self.place_order("SELL")
         
         # Get current price for tracking profit/loss
         ticker = self.ib.reqTickers(self.get_contract())[0]
