@@ -506,7 +506,7 @@ if __name__ == "__main__":
         timeframe=args.timeframe,
         ema_short=args.ema_short,
         ema_long=args.ema_long,
-        paper_trading=args.paper_trading,
+        paper_trading=True,
         threshold=args.threshold,
         trading_time=args.trading_time
     )
