@@ -1,0 +1,1 @@
+gh api repos/atrone/spyemachad/actions/artifacts --paginate | ConvertFrom-Json | Select-Object -ExpandProperty artifacts | Select-Object -First 100 | ForEach-Object { gh api -X DELETE repos/atrone/spyemachad/actions/artifacts/$($_.id) }
