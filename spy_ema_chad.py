@@ -59,7 +59,7 @@ class SPYEMAChad:
     
     def connect_to_ib(self, host='127.0.0.1', port=7497, client_id=1, max_retries=3):
         """Connect to Interactive Brokers TWS or Gateway"""
-        port_to_use = 7497 if self.paper_trading else 7496
+        port_to_use = 7498 if self.paper_trading else 7496
         
         for attempt in range(max_retries):
             try:

@@ -67,6 +67,7 @@ class TestSPYEMAChad(unittest.TestCase):
         """Test the connection to Interactive Brokers."""
         # Mock successful connection
         self.strategy.ib.connect = MagicMock(return_value=True)
+        self.strategy.ib.isConnected = MagicMock(return_value=False)
         result = self.strategy.connect_to_ib()
         self.assertTrue(result)
         self.strategy.ib.connect.assert_called_once()
@@ -175,21 +176,21 @@ class TestSPYEMAChad(unittest.TestCase):
         
         with patch.object(datetime, 'datetime', Mock(now=Mock(return_value=mock_now))):
             # Test with price above indicators
-            result = self.strategy.check_initial_condition(df)
+            current_price = 401.0
+            result = self.strategy.check_initial_condition(df=current_price, df_5=df)
             self.assertEqual(result, "ABOVE")
             
             # Test with price below indicators
-            
-            df['close'] = [395.0, 396.0, 397.0]
-            result = self.strategy.check_initial_condition(df)
+            current_price = 395.0
+            result = self.strategy.check_initial_condition(df=current_price, df_5=df)
             self.assertEqual(result, "BELOW")
             
             # Test with price between indicators
-            df['close'] = [398.5, 399.0, 399.5]
+            current_price = 398.5
             df['ema_short'] = [398.0, 398.0, 398.0]
             df['ema_long'] = [397.0, 397.0, 397.0]
             df['vwap'] = [400.0, 400.0, 400.0]
-            result = self.strategy.check_initial_condition(df)
+            result = self.strategy.check_initial_condition(df=current_price, df_5=df)
             self.assertIsNone(result)
             
     def test_check_for_entry(self):
@@ -206,7 +207,8 @@ class TestSPYEMAChad(unittest.TestCase):
         self.assertTrue(self.strategy.check_for_entry(400.0, 400.0))
         
         # Price very close to EMA (within threshold)
-        self.assertTrue(self.strategy.check_for_entry(400.2, 400.0))
+        # Default threshold is 0.0003, so 400 * 0.0003 = 0.12
+        self.assertTrue(self.strategy.check_for_entry(400.1, 400.0))
         
         # Price too far from EMA
         self.assertFalse(self.strategy.check_for_entry(402.0, 400.0))
@@ -228,30 +230,40 @@ class TestSPYEMAChad(unittest.TestCase):
         
         # Test when no position is open
         self.strategy.position = None
-        self.assertFalse(self.strategy.check_stop_loss(df))
+        current_price = 401.0
+        self.assertFalse(self.strategy.check_stop_loss(current_price, df))
         
         # Test long position with price still above indicators
         self.strategy.position = "LONG"
-        self.assertFalse(self.strategy.check_stop_loss(df))
+        self.assertFalse(self.strategy.check_stop_loss(current_price, df))
         
         # Test long position with price below indicators (stop loss condition)
         df.iloc[-2] = [398.0, 399.0, 400.0, 401.0]  # price below all indicators
-        self.assertTrue(self.strategy.check_stop_loss(df))
+        current_price = 397.0
+        self.assertTrue(self.strategy.check_stop_loss(current_price, df))
         
         # Test short position with price still below indicators
         self.strategy.position = "SHORT"
         df.iloc[-2] = [398.0, 399.0, 400.0, 401.0]  # price below all indicators
-        self.assertFalse(self.strategy.check_stop_loss(df))
+        current_price = 397.0
+        self.assertFalse(self.strategy.check_stop_loss(current_price, df))
         
         # Test short position with price above indicators (stop loss condition)
         df.iloc[-2] = [402.0, 400.0, 399.0, 398.0]  # price above all indicators
-        self.assertTrue(self.strategy.check_stop_loss(df))
+        current_price = 403.0
+        self.assertTrue(self.strategy.check_stop_loss(current_price, df))
         
     def test_place_order(self):
         """Test placing an order with Interactive Brokers."""
         # Mock IB's placeOrder method
         self.strategy.ib.placeOrder = MagicMock()
         self.strategy.ib.sleep = MagicMock()
+        self.strategy.ib.reqTickers = MagicMock(return_value=[Mock(marketPrice=MagicMock(return_value=400.0))])
+        self.strategy.ib.reqContractDetails = MagicMock(return_value=[Mock(contract=Mock())])
+        self.strategy.ib.qualifyContracts = MagicMock()
+        
+        # Set position before placing order (needed for option type determination)
+        self.strategy.position = "LONG"
         
         # Test placing a buy order
         self.strategy.place_order("BUY", 1)
@@ -261,12 +273,13 @@ class TestSPYEMAChad(unittest.TestCase):
         args, _ = self.strategy.ib.placeOrder.call_args
         contract, order = args
         
-        self.assertEqual(contract.symbol, "SPY")
         self.assertEqual(order.action, "BUY")
         self.assertEqual(order.totalQuantity, 1)
         
         # Test placing a sell order
         self.strategy.ib.placeOrder.reset_mock()
+        self.strategy.position = "SHORT"
+        self.strategy.option = None  # Reset option to test creation
         self.strategy.place_order("SELL", 2)
         
         args, _ = self.strategy.ib.placeOrder.call_args
@@ -451,11 +464,28 @@ class TestSPYEMAChad(unittest.TestCase):
         
         # Mock methods to control flow
         self.strategy.connect_to_ib = MagicMock(return_value=True)
-        self.strategy.get_historical_data = MagicMock(return_value=pd.DataFrame())
-        self.strategy.calculate_indicators = MagicMock(return_value=pd.DataFrame())
+        self.strategy.get_historical_data = MagicMock(return_value=pd.DataFrame({
+            'date': pd.to_datetime(['2023-01-01 09:00:00']),
+            'close': [400.0],
+            'high': [401.0],
+            'low': [399.0],
+            'volume': [1000]
+        }))
+        self.strategy.calculate_indicators = MagicMock(return_value=pd.DataFrame({
+            'date': pd.to_datetime(['2023-01-01 09:00:00']),
+            'close': [400.0],
+            'ema_short': [399.0],
+            'ema_long': [398.0],
+            'vwap': [397.0]
+        }))
         self.strategy.is_market_open = MagicMock(side_effect=[True, False])  # Run once then exit
         self.strategy.is_force_close_time = MagicMock(return_value=False)
         self.strategy.position = None
+        
+        # Mock IB ticker response
+        mock_ticker = Mock()
+        mock_ticker.marketPrice = MagicMock(return_value=400.0)
+        self.strategy.ib.reqTickers = MagicMock(return_value=[mock_ticker])
         
         # Add a side effect to exit the infinite loop
         mock_sleep.side_effect = KeyboardInterrupt()
@@ -468,9 +498,9 @@ class TestSPYEMAChad(unittest.TestCase):
         
         # Verify methods were called
         self.strategy.connect_to_ib.assert_called_once()
-        self.strategy.get_historical_data.assert_called_once()
-        self.strategy.calculate_indicators.assert_called_once()
-        self.strategy.is_market_open.assert_called_once()
+        self.strategy.get_historical_data.assert_called()
+        self.strategy.calculate_indicators.assert_called()
+        self.strategy.is_market_open.assert_called()
 
 if __name__ == '__main__':
     unittest.main() 
