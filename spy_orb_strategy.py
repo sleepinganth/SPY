@@ -29,6 +29,7 @@ class SPYORBStrategy:
         force_close_time: str = "14:55:00",
         bar_size: str = "5 mins",
         paper_trading: bool = True,
+        port: int = 7497,
     ):
         self.ticker = ticker
         self.contracts = contracts
@@ -39,7 +40,7 @@ class SPYORBStrategy:
         self.force_close_time = force_close_time
         self.bar_size = bar_size
         self.paper_trading = paper_trading
-
+        self.port = port
         # Trading state
         self.opening_range_high = None
         self.opening_range_low = None
@@ -61,7 +62,7 @@ class SPYORBStrategy:
     # ---------------------------------------------------------------------
     def connect_to_ib(self, host: str = "127.0.0.1", client_id: int = 9, max_retries: int = 3) -> bool:
         """Connect to TWS / IB Gateway. Re-tries a few times for resiliency."""
-        port = 7497 if self.paper_trading else 7496
+        port = self.port
         for attempt in range(1, max_retries + 1):
             try:
                 if self.ib.isConnected():
@@ -337,6 +338,7 @@ if __name__ == "__main__":
     parser.add_argument("--underlying_move_target", type=float, default=1.0, help="First profit target (underlying $ move)")
     parser.add_argument("--itm_offset", type=float, default=1.05, help="Underlying distance beyond strike for second target")
     parser.add_argument("--paper_trading", action="store_true", help="Use paper trading account (7497)")
+    parser.add_argument("--port", type=int, default=7497, help="Port number")
 
     args = parser.parse_args()
 
@@ -345,6 +347,7 @@ if __name__ == "__main__":
         contracts=args.contracts,
         underlying_move_target=args.underlying_move_target,
         itm_offset=args.itm_offset,
-        paper_trading=True,
+        paper_trading=args.paper_trading,
+        port=args.port,
     )
     strategy.run() 

@@ -36,6 +36,7 @@ class SPYBOSKStrategy:
         atr_period: int = 20,
         kc_mult: float = 1.5,
         paper_trading: bool = True,
+        port: int = 7497,
     ):
         # Core parameters
         self.ticker = ticker
@@ -53,7 +54,7 @@ class SPYBOSKStrategy:
         self.atr_period = atr_period
         self.kc_mult = kc_mult
         self.paper_trading = paper_trading
-
+        self.port = port
         # Trading state
         self.positions: list[dict] = []  # Active positions
         self.wait_for_ema20_cross = False  # Prevent re-entry after profitable trade
@@ -68,7 +69,7 @@ class SPYBOSKStrategy:
     # ------------------------------------------------------------------
     def connect_to_ib(self, host: str = "127.0.0.1", client_id: int = 11, max_retries: int = 3) -> bool:
         """Connect to TWS / IB Gateway."""
-        port = 7497 if self.paper_trading else 7496
+        port = self.port
         for attempt in range(1, max_retries + 1):
             try:
                 if self.ib.isConnected():
@@ -417,7 +418,7 @@ if __name__ == "__main__":
     parser.add_argument("--underlying_move_target", type=float, default=1.0, help="First profit target (underlying $ move)")
     parser.add_argument("--itm_offset", type=float, default=1.05, help="Underlying distance beyond strike for second target")
     parser.add_argument("--paper_trading", action="store_true", help="Use paper trading account (7497)")
-
+    parser.add_argument("--port", type=int, default=7497, help="Port number")
     args = parser.parse_args()
 
     strategy = SPYBOSKStrategy(
@@ -425,6 +426,7 @@ if __name__ == "__main__":
         contracts=args.contracts,
         underlying_move_target=args.underlying_move_target,
         itm_offset=args.itm_offset,
-        paper_trading=True,
+        paper_trading=args.paper_trading,
+        port=args.port,
     )
     strategy.run() 

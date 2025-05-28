@@ -34,6 +34,7 @@ class SPYREVStrategy:
         rsi_oversold: float = 30.0,
         rsi_overbought: float = 70.0,
         paper_trading: bool = True,
+        port: int = 7497,
     ):
         self.ticker = ticker
         self.contracts = contracts
@@ -50,7 +51,7 @@ class SPYREVStrategy:
         self.rsi_oversold = rsi_oversold
         self.rsi_overbought = rsi_overbought
         self.paper_trading = paper_trading
-
+        self.port = port
         # Trading state - can have multiple positions
         self.positions = []  # List of active positions
         self.rsi_signal = None  # "LONG_SETUP" or "SHORT_SETUP" or None
@@ -66,7 +67,7 @@ class SPYREVStrategy:
     # ---------------------------------------------------------------------
     def connect_to_ib(self, host: str = "127.0.0.1", client_id: int = 10, max_retries: int = 3) -> bool:
         """Connect to TWS / IB Gateway."""
-        port = 7497 if self.paper_trading else 7496
+        port = self.port
         for attempt in range(1, max_retries + 1):
             try:
                 if self.ib.isConnected():
@@ -445,7 +446,7 @@ if __name__ == "__main__":
     parser.add_argument("--rsi_oversold", type=float, default=30.0, help="RSI oversold level")
     parser.add_argument("--rsi_overbought", type=float, default=70.0, help="RSI overbought level")
     parser.add_argument("--paper_trading", action="store_true", help="Use paper trading account")
-
+    parser.add_argument("--port", type=int, default=7497, help="Port number")
     args = parser.parse_args()
 
     strategy = SPYREVStrategy(
@@ -457,6 +458,7 @@ if __name__ == "__main__":
         ema_period=args.ema_period,
         rsi_oversold=args.rsi_oversold,
         rsi_overbought=args.rsi_overbought,
-        paper_trading=True,
+        paper_trading=args.paper_trading,
+        port=args.port,
     )
     strategy.run() 

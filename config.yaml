@@ -1,0 +1,31 @@
+# SPY Trading Strategies Configuration
+# Configuration for running multiple SPY trading strategies in parallel
+
+strategies:
+  bosk:
+    enabled: true
+    script: "spy_bosk_strategy.py"
+    args:
+      ticker: "SPY"
+      contracts: 2
+      underlying_move_target: 1.0
+      itm_offset: 1.05
+      paper_trading: true
+      port: 7497
+
+  orb:
+    enabled: true
+    script: "spy_orb_strategy.py"
+    args:
+      ticker: "SPY"
+      contracts: 2
+      underlying_move_target: 1.0
+      itm_offset: 1.05
+      paper_trading: true
+      port: 7498  # Different port to avoid conflicts
+
+# Global settings
+global:
+  log_level: "INFO"
+  max_retries: 3
+  restart_on_failure: true 

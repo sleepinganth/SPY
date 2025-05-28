@@ -1,0 +1,46 @@
+# SPY Trading Strategies Configuration - Live Trading Example
+# WARNING: This configuration is for live trading - use with extreme caution
+
+strategies:
+  bosk:
+    enabled: true
+    script: "spy_bosk_strategy.py"
+    args:
+      ticker: "SPY"
+      contracts: 1  # Reduced for live trading
+      underlying_move_target: 0.75  # Tighter profit targets
+      itm_offset: 1.25
+      paper_trading: false  # LIVE TRADING
+      port: 7496  # Live trading port
+
+  orb:
+    enabled: false  # Disabled in this example
+    script: "spy_orb_strategy.py"
+    args:
+      ticker: "SPY"
+      contracts: 1
+      underlying_move_target: 0.75
+      itm_offset: 1.25
+      paper_trading: false
+      port: 7500
+
+  rev:
+    enabled: true
+    script: "spy_rev_strategy.py"
+    args:
+      ticker: "SPY"
+      contracts: 1
+      underlying_move_target: 0.75
+      itm_offset: 1.25
+      rsi_period: 21  # Different RSI period
+      ema_period: 9
+      rsi_oversold: 25.0  # More extreme levels
+      rsi_overbought: 75.0
+      paper_trading: false
+      port: 7501
+
+# Global settings
+global:
+  log_level: "DEBUG"  # More verbose logging for live trading
+  max_retries: 2  # Fewer retries for live trading
+  restart_on_failure: false  # Don't auto-restart on live trading failures 
