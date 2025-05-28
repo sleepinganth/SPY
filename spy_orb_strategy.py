@@ -211,9 +211,6 @@ class SPYORBStrategy:
         opt_price = self.ib.reqTickers(self.option_contract)[0].marketPrice()
         pnl_per_contract = (opt_price - self.entry_option_price) * 100
         direction = "CALL" if self.position == "CALL" else "PUT"
-        print(
-            f"{datetime.datetime.now(self.tz)} — Closed {direction} | Reason: {reason} | Δ option: {pnl_per_contract:.2f}$/contract"
-        )
         # Reset
         self.position = None
         self.option_contract = None
