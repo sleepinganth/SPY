@@ -19,7 +19,7 @@ jobs:
 
       - name: Build .app with py2app
         run: |
-          rm -rf ./build ./dist ./venv_x86 *.egg-info
+          rm -rf dist/*.app ./build ./dist ./venv_x86 *.egg-info
           pip install -r requirements.txt
           pip install py2app
           python setup.py clean --all
