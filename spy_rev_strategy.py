@@ -232,6 +232,10 @@ class SPYREVStrategy:
     # ---------------------------------------------------------------------
     # Position management
     # ---------------------------------------------------------------------
+    def has_position_type(self, position_type: str) -> bool:
+        """Check if there's already a position of the specified type (CALL or PUT)."""
+        return any(pos['type'] == position_type for pos in self.positions)
+
     def place_order(self, contract, action: str, quantity: int):
         order = MarketOrder(action, quantity)
         trade = self.ib.placeOrder(contract, order)
@@ -241,6 +245,11 @@ class SPYREVStrategy:
 
     def enter_position(self, position_type: str):
         """Enter CALL or PUT position."""
+        # Check if we already have a position of this type
+        if self.has_position_type(position_type):
+            print(f"Already have a {position_type} position - skipping entry")
+            return
+
         right = "C" if position_type == "CALL" else "P"
         option_contract = self.get_option_contract(right)
         self.place_order(option_contract, "BUY", self.contracts)

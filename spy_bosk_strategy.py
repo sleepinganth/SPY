@@ -86,6 +86,12 @@ class SPYBOSKStrategy:
         print("Unable to connect after maximum retries – exiting.")
         return False
 
+
+    def has_position_type(self, position_type: str) -> bool:
+        """Check if there's already a position of the specified type (CALL or PUT)."""
+        return any(pos['type'] == position_type for pos in self.positions)
+
+
     def get_stock_contract(self):
         return Stock(self.ticker, "SMART", "USD")
 
@@ -232,6 +238,9 @@ class SPYBOSKStrategy:
 
     def enter_position(self, position_type: str):
         """Enter CALL (long) or PUT (short)."""
+        if self.has_position_type(position_type):
+            print(f"Already have a {position_type} position - skipping entry")
+            return
         right = "C" if position_type == "CALL" else "P"
         option_contract = self.get_option_contract(right)
         self.place_order(option_contract, "BUY", self.contracts)
