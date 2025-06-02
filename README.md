@@ -1,4 +1,4 @@
-# SPY EMA CHAD 1
+# SPY EMA CHAD 2
 
 **SPY EMA Crossover Highly Automated Dealer** - An automated trading system for options trading based on EMA and VWAP indicators.
 
