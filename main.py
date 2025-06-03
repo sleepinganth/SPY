@@ -107,27 +107,68 @@ class StrategyManager:
                     # Running in a bundle
                     bundle_dir = os.path.dirname(sys.executable)
                     resources_dir = os.path.join(os.path.dirname(bundle_dir), 'Resources')
-                    site_packages = os.path.join(resources_dir, 'lib', 'python3.12', 'site-packages')
                     
                     self.logger.debug(f"Bundle detected - sys.executable: {sys.executable}")
                     self.logger.debug(f"Bundle dir: {bundle_dir}")
                     self.logger.debug(f"Resources dir: {resources_dir}")
-                    self.logger.debug(f"Site-packages path: {site_packages}")
+                    self.logger.debug(f"Current sys.path: {sys.path}")
                     
-                    if os.path.exists(site_packages):
+                    # Explore the bundle structure
+                    self.logger.debug("=== Exploring bundle structure ===")
+                    for root, dirs, files in os.walk(resources_dir):
+                        if 'pandas' in root.lower() or 'site' in root.lower() or 'lib' in root.lower():
+                            self.logger.debug(f"Found directory: {root}")
+                    
+                    # Try multiple potential locations for packages
+                    potential_paths = [
+                        os.path.join(resources_dir, 'lib', 'python3.12', 'site-packages'),
+                        os.path.join(resources_dir, 'site-packages'),
+                        os.path.join(resources_dir, 'lib', 'python3.12'),
+                        os.path.join(resources_dir, 'lib'),
+                        resources_dir,  # Sometimes packages are directly in Resources
+                        bundle_dir,     # Sometimes packages are with the executable
+                    ]
+                    
+                    # Also add all current sys.path entries to potential paths
+                    potential_paths.extend(sys.path)
+                    
+                    pythonpath_set = False
+                    valid_paths = []
+                    
+                    for path in potential_paths:
+                        self.logger.debug(f"Checking path: {path}")
+                        if os.path.exists(path):
+                            # Check if this directory contains Python packages
+                            has_packages = any(
+                                os.path.isdir(os.path.join(path, item)) and 
+                                (item.endswith('.egg-info') or item in ['pandas', 'numpy', 'ib_insync', 'yaml'])
+                                for item in os.listdir(path)
+                            )
+                            if has_packages:
+                                valid_paths.append(path)
+                                self.logger.debug(f"Found packages in: {path}")
+                            else:
+                                self.logger.debug(f"No packages found in: {path}")
+                    
+                    if valid_paths:
                         current_path = env.get('PYTHONPATH', '')
-                        env['PYTHONPATH'] = f"{site_packages}{os.pathsep}{current_path}" if current_path else site_packages
+                        all_paths = os.pathsep.join(valid_paths)
+                        env['PYTHONPATH'] = f"{all_paths}{os.pathsep}{current_path}" if current_path else all_paths
                         self.logger.debug(f"Set PYTHONPATH to: {env['PYTHONPATH']}")
-                    else:
-                        self.logger.warning(f"Site-packages directory not found: {site_packages}")
-                        # Try alternative paths
-                        alt_site_packages = os.path.join(resources_dir, 'site-packages')  
-                        if os.path.exists(alt_site_packages):
-                            current_path = env.get('PYTHONPATH', '')
-                            env['PYTHONPATH'] = f"{alt_site_packages}{os.pathsep}{current_path}" if current_path else alt_site_packages
-                            self.logger.debug(f"Using alternative site-packages path: {env['PYTHONPATH']}")
-                        else:
-                            self.logger.warning(f"Alternative site-packages directory also not found: {alt_site_packages}")
+                        pythonpath_set = True
+                    
+                    if not pythonpath_set:
+                        self.logger.warning("Could not find Python packages in bundle - listing Resources contents:")
+                        try:
+                            for item in os.listdir(resources_dir):
+                                item_path = os.path.join(resources_dir, item)
+                                if os.path.isdir(item_path):
+                                    self.logger.warning(f"  DIR: {item}")
+                                else:
+                                    self.logger.warning(f"  FILE: {item}")
+                        except Exception as e:
+                            self.logger.error(f"Could not list Resources directory: {e}")
+                            
                 else:
                     # Running in development
                     self.logger.debug("Not running in bundle - using system Python environment")
