@@ -102,90 +102,24 @@ class StrategyManager:
                 # Set up environment for bundled app
                 env = os.environ.copy()
                 
-                # For macOS app bundles, add the site-packages path
-                if getattr(sys, 'frozen', False):
-                    self.logger.info("Bundle detected - setting up environment for bundled app")
-                    # Running in a bundle
-                    bundle_dir = os.path.dirname(sys.executable)
-                    resources_dir = os.path.join(os.path.dirname(bundle_dir), 'Resources')
-                    
-                    self.logger.info(f"Bundle detected - sys.executable: {sys.executable}")
-                    self.logger.info(f"Bundle dir: {bundle_dir}")
-                    self.logger.info(f"Resources dir: {resources_dir}")
-                    self.logger.debug(f"Current sys.path: {sys.path}")
-                    
-                    # Explore the bundle structure
-                    self.logger.debug("=== Exploring bundle structure ===")
-                    for root, dirs, files in os.walk(resources_dir):
-                        if 'pandas' in root.lower() or 'site' in root.lower() or 'lib' in root.lower():
-                            self.logger.debug(f"Found directory: {root}")
-                    
-                    # Try multiple potential locations for packages
-                    potential_paths = [
-                        os.path.join(resources_dir, 'lib', 'python3.12', 'site-packages'),
-                        os.path.join(resources_dir, 'site-packages'),
-                        os.path.join(resources_dir, 'lib', 'python3.12'),
-                        os.path.join(resources_dir, 'lib'),
-                        resources_dir,  # Sometimes packages are directly in Resources
-                        bundle_dir,     # Sometimes packages are with the executable
-                    ]
-                    
-                    # Also add all current sys.path entries to potential paths
-                    potential_paths.extend(sys.path)
-                    
-                    pythonpath_set = False
-                    valid_paths = []
-                    
-                    for path in potential_paths:
-                        self.logger.debug(f"Checking path: {path}")
-                        if os.path.exists(path) and os.path.isdir(path):  # Only check directories, not ZIP files
-                            try:
-                                # Check if this directory contains Python packages
-                                has_packages = any(
-                                    os.path.isdir(os.path.join(path, item)) and 
-                                    (item.endswith('.egg-info') or item in ['pandas', 'numpy', 'ib_insync', 'yaml'])
-                                    for item in os.listdir(path)
-                                )
-                                if has_packages:
-                                    valid_paths.append(path)
-                                    self.logger.debug(f"Found packages in: {path}")
-                                else:
-                                    self.logger.debug(f"No packages found in: {path}")
-                            except Exception as e:
-                                self.logger.debug(f"Error checking path {path}: {e}")
-                        elif path.endswith('.zip') and os.path.exists(path):
-                            self.logger.debug(f"Skipping ZIP file: {path}")
-                        else:
-                            self.logger.debug(f"Path does not exist or is not a directory: {path}")
-                    
-                    # Also add the ZIP file to PYTHONPATH if it exists
-                    python_zip = os.path.join(resources_dir, 'lib', 'python312.zip')
-                    if os.path.exists(python_zip):
-                        valid_paths.append(python_zip)
-                        self.logger.info(f"Added Python ZIP file to path: {python_zip}")
-                    
-                    if valid_paths:
-                        current_path = env.get('PYTHONPATH', '')
-                        all_paths = os.pathsep.join(valid_paths)
-                        env['PYTHONPATH'] = f"{all_paths}{os.pathsep}{current_path}" if current_path else all_paths
-                        self.logger.info(f"Set PYTHONPATH to: {env['PYTHONPATH']}")
-                        pythonpath_set = True
-                    
-                    if not pythonpath_set:
-                        self.logger.warning("Could not find Python packages in bundle - listing Resources contents:")
-                        try:
-                            for item in os.listdir(resources_dir):
-                                item_path = os.path.join(resources_dir, item)
-                                if os.path.isdir(item_path):
-                                    self.logger.warning(f"  DIR: {item}")
-                                else:
-                                    self.logger.warning(f"  FILE: {item}")
-                        except Exception as e:
-                            self.logger.error(f"Could not list Resources directory: {e}")
-                            
+                # Always set PYTHONPATH to match the main app's sys.path
+                # This ensures subprocess has same module search paths as main app
+                current_pythonpath = env.get('PYTHONPATH', '')
+                main_app_paths = os.pathsep.join(sys.path)
+                
+                if current_pythonpath:
+                    env['PYTHONPATH'] = f"{main_app_paths}{os.pathsep}{current_pythonpath}"
                 else:
-                    # Running in development
-                    self.logger.info("Not running in bundle - using system Python environment")
+                    env['PYTHONPATH'] = main_app_paths
+                
+                self.logger.info(f"Set subprocess PYTHONPATH to match main app sys.path")
+                self.logger.debug(f"PYTHONPATH: {env['PYTHONPATH']}")
+                
+                # For macOS app bundles, add additional bundle-specific setup if needed
+                if getattr(sys, 'frozen', False):
+                    self.logger.info("Bundle detected - using bundled Python with system paths")
+                else:
+                    self.logger.info("Development mode - using system Python environment")
                 
                 # Start the process
                 process = subprocess.Popen(
@@ -320,6 +254,13 @@ class StrategyManager:
             self.logger.info(f"SUCCESS: Main app can import pandas from: {pd.__file__}")
         except ImportError as e:
             self.logger.error(f"ERROR: Main app cannot import pandas: {e}")
+        
+        # Test ib_insync import in main app
+        try:
+            import ib_insync
+            self.logger.info(f"SUCCESS: Main app can import ib_insync from: {ib_insync.__file__}")
+        except ImportError as e:
+            self.logger.error(f"ERROR: Main app cannot import ib_insync: {e}")
         
         try:
             self.start_strategies()
