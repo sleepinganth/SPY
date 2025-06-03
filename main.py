@@ -137,18 +137,31 @@ class StrategyManager:
                     
                     for path in potential_paths:
                         self.logger.debug(f"Checking path: {path}")
-                        if os.path.exists(path):
-                            # Check if this directory contains Python packages
-                            has_packages = any(
-                                os.path.isdir(os.path.join(path, item)) and 
-                                (item.endswith('.egg-info') or item in ['pandas', 'numpy', 'ib_insync', 'yaml'])
-                                for item in os.listdir(path)
-                            )
-                            if has_packages:
-                                valid_paths.append(path)
-                                self.logger.debug(f"Found packages in: {path}")
-                            else:
-                                self.logger.debug(f"No packages found in: {path}")
+                        if os.path.exists(path) and os.path.isdir(path):  # Only check directories, not ZIP files
+                            try:
+                                # Check if this directory contains Python packages
+                                has_packages = any(
+                                    os.path.isdir(os.path.join(path, item)) and 
+                                    (item.endswith('.egg-info') or item in ['pandas', 'numpy', 'ib_insync', 'yaml'])
+                                    for item in os.listdir(path)
+                                )
+                                if has_packages:
+                                    valid_paths.append(path)
+                                    self.logger.debug(f"Found packages in: {path}")
+                                else:
+                                    self.logger.debug(f"No packages found in: {path}")
+                            except Exception as e:
+                                self.logger.debug(f"Error checking path {path}: {e}")
+                        elif path.endswith('.zip') and os.path.exists(path):
+                            self.logger.debug(f"Skipping ZIP file: {path}")
+                        else:
+                            self.logger.debug(f"Path does not exist or is not a directory: {path}")
+                    
+                    # Also add the ZIP file to PYTHONPATH if it exists
+                    python_zip = os.path.join(resources_dir, 'lib', 'python312.zip')
+                    if os.path.exists(python_zip):
+                        valid_paths.append(python_zip)
+                        self.logger.debug(f"Added Python ZIP file to path: {python_zip}")
                     
                     if valid_paths:
                         current_path = env.get('PYTHONPATH', '')
