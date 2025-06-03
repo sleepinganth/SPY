@@ -28,8 +28,54 @@ jobs:
       - name: Copy config.yaml to app bundle
         run: |
           cp config.yaml ./dist/MacApp.app/Contents/Resources/
-          cp spy_bosk_strategy.py ./dist/MacApp.app/Contents/Resources/
-          cp spy_orb_strategy.py ./dist/MacApp.app/Contents/Resources/
+
+      - name: Explore app bundle structure
+        run: |
+          echo "=== App bundle structure ==="
+          find ./dist/MacApp.app -type d -name "*site*" -o -name "*package*" -o -name "*lib*" | head -20
+          echo ""
+          echo "=== Contents directory ==="
+          ls -la ./dist/MacApp.app/Contents/
+          echo ""
+          echo "=== Resources directory ==="
+          ls -la ./dist/MacApp.app/Contents/Resources/ | head -20
+          echo ""
+          echo "=== Looking for pandas ==="
+          find ./dist/MacApp.app -name "*pandas*" -type d | head -10
+
+      - name: Test Python module imports
+        run: |
+          # Create a simple test script
+          cat > test_imports.py << 'EOF'
+          import sys
+          print("Python executable:", sys.executable)
+          print("Python version:", sys.version)
+          print("sys.path:")
+          for p in sys.path:
+              print(f"  {p}")
+          print()
+          
+          try:
+              import pandas as pd
+              print("SUCCESS: pandas imported successfully")
+              print("pandas location:", pd.__file__)
+          except ImportError as e:
+              print("ERROR importing pandas:", e)
+          
+          try:
+              import numpy as np
+              print("SUCCESS: numpy imported successfully")
+              print("numpy location:", np.__file__)
+          except ImportError as e:
+              print("ERROR importing numpy:", e)
+          EOF
+          
+          # Copy it to the app bundle
+          cp test_imports.py ./dist/MacApp.app/Contents/Resources/
+          
+          # Run the test with the bundled Python
+          echo "=== Testing with bundled Python ==="
+          ./dist/MacApp.app/Contents/MacOS/python ./dist/MacApp.app/Contents/Resources/test_imports.py
 
       - name: Upload .app bundle
         uses: actions/upload-artifact@v4
