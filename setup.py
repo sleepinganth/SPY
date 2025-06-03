@@ -1,22 +1,14 @@
 from setuptools import setup
 
-# Read requirements from requirements.txt
-def read_requirements():
-    try:
-        with open('requirements.txt', 'r', encoding='utf-16') as f:
-            return [line.strip() for line in f if line.strip() and not line.startswith('#')]
-    except UnicodeDecodeError:
-        # Fallback to latin-1 encoding if utf-8 fails
-        with open('requirements.txt', 'r', encoding='latin-1') as f:
-            return [line.strip() for line in f if line.strip() and not line.startswith('#')]
-
 APP = ['main.py']
 OPTIONS = {
     'argv_emulation': False,
     'optimize': 0,
-    'packages': [],
-    'includes': ['cmath'],
+    'packages': ['pandas', 'numpy', 'ib_insync', 'pytz', 'yaml', 'jaraco'],
+    'includes': ['cmath', 'decimal', 'numbers'],
     'site_packages': True,
+    'strip': False,  # Keep debug info for complex packages
+    'semi_standalone': False,  # Include all dependencies
 }
 
 setup(
@@ -24,5 +16,12 @@ setup(
     name='MacApp',
     options={'py2app': OPTIONS},
     setup_requires=['py2app'],
-    install_requires=read_requirements(),
+    install_requires=[
+        'pandas>=1.5.0',
+        'numpy>=1.21.0',
+        'ib_insync>=0.9.86',
+        'pytz>=2022.1',
+        'PyYAML>=6.0',
+        'jaraco.text'
+    ],
 )
