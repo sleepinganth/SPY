@@ -4,8 +4,8 @@ APP = ['main.py']
 OPTIONS = {
     'argv_emulation': False,
     'optimize': 0,
-    'packages': ['pandas', 'numpy', 'ib_insync', 'pytz', 'yaml', 'jaraco.text'],
-    'includes': ['cmath', 'decimal', 'numbers'],
+    'packages': [],
+    'includes': ['cmath'],
     'site_packages': True,
     'strip': False,  # Keep debug info for complex packages
     'semi_standalone': False,  # Include all dependencies
