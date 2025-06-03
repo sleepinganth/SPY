@@ -74,7 +74,7 @@ class StrategyManager:
         if not Path(script).exists():
             raise FileNotFoundError(f"Strategy script '{script}' not found.")
         
-        # Build command
+        # Build command - use the bundled Python executable
         cmd = [sys.executable, script]
         
         # Add arguments
@@ -99,13 +99,47 @@ class StrategyManager:
                 cmd = self._build_command(strategy_name, strategy_config)
                 self.logger.info(f"Starting {strategy_name} strategy: {' '.join(cmd)}")
                 
+                # Set up environment for bundled app
+                env = os.environ.copy()
+                
+                # For macOS app bundles, add the site-packages path
+                if getattr(sys, 'frozen', False):
+                    # Running in a bundle
+                    bundle_dir = os.path.dirname(sys.executable)
+                    resources_dir = os.path.join(os.path.dirname(bundle_dir), 'Resources')
+                    site_packages = os.path.join(resources_dir, 'lib', 'python3.12', 'site-packages')
+                    
+                    self.logger.debug(f"Bundle detected - sys.executable: {sys.executable}")
+                    self.logger.debug(f"Bundle dir: {bundle_dir}")
+                    self.logger.debug(f"Resources dir: {resources_dir}")
+                    self.logger.debug(f"Site-packages path: {site_packages}")
+                    
+                    if os.path.exists(site_packages):
+                        current_path = env.get('PYTHONPATH', '')
+                        env['PYTHONPATH'] = f"{site_packages}{os.pathsep}{current_path}" if current_path else site_packages
+                        self.logger.debug(f"Set PYTHONPATH to: {env['PYTHONPATH']}")
+                    else:
+                        self.logger.warning(f"Site-packages directory not found: {site_packages}")
+                        # Try alternative paths
+                        alt_site_packages = os.path.join(resources_dir, 'site-packages')  
+                        if os.path.exists(alt_site_packages):
+                            current_path = env.get('PYTHONPATH', '')
+                            env['PYTHONPATH'] = f"{alt_site_packages}{os.pathsep}{current_path}" if current_path else alt_site_packages
+                            self.logger.debug(f"Using alternative site-packages path: {env['PYTHONPATH']}")
+                        else:
+                            self.logger.warning(f"Alternative site-packages directory also not found: {alt_site_packages}")
+                else:
+                    # Running in development
+                    self.logger.debug("Not running in bundle - using system Python environment")
+                
                 # Start the process
                 process = subprocess.Popen(
                     cmd,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                     universal_newlines=True,
-                    bufsize=1
+                    bufsize=1,
+                    env=env
                 )
                 
                 self.processes[strategy_name] = process
