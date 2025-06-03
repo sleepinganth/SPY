@@ -2,8 +2,13 @@ from setuptools import setup
 
 # Read requirements from requirements.txt
 def read_requirements():
-    with open('requirements.txt', 'r') as f:
-        return [line.strip() for line in f if line.strip() and not line.startswith('#')]
+    try:
+        with open('requirements.txt', 'r', encoding='utf-16') as f:
+            return [line.strip() for line in f if line.strip() and not line.startswith('#')]
+    except UnicodeDecodeError:
+        # Fallback to latin-1 encoding if utf-8 fails
+        with open('requirements.txt', 'r', encoding='latin-1') as f:
+            return [line.strip() for line in f if line.strip() and not line.startswith('#')]
 
 APP = ['main.py']
 OPTIONS = {
