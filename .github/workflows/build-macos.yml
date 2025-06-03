@@ -28,6 +28,8 @@ jobs:
       - name: Copy config.yaml to app bundle
         run: |
           cp config.yaml ./dist/MacApp.app/Contents/Resources/
+          cp spy_bosk_strategy.py ./dist/MacApp.app/Contents/Resources/
+          cp spy_orb_strategy.py ./dist/MacApp.app/Contents/Resources/
 
       - name: Upload .app bundle
         uses: actions/upload-artifact@v4
