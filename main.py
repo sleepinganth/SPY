@@ -104,13 +104,14 @@ class StrategyManager:
                 
                 # For macOS app bundles, add the site-packages path
                 if getattr(sys, 'frozen', False):
+                    self.logger.info("Bundle detected - setting up environment for bundled app")
                     # Running in a bundle
                     bundle_dir = os.path.dirname(sys.executable)
                     resources_dir = os.path.join(os.path.dirname(bundle_dir), 'Resources')
                     
-                    self.logger.debug(f"Bundle detected - sys.executable: {sys.executable}")
-                    self.logger.debug(f"Bundle dir: {bundle_dir}")
-                    self.logger.debug(f"Resources dir: {resources_dir}")
+                    self.logger.info(f"Bundle detected - sys.executable: {sys.executable}")
+                    self.logger.info(f"Bundle dir: {bundle_dir}")
+                    self.logger.info(f"Resources dir: {resources_dir}")
                     self.logger.debug(f"Current sys.path: {sys.path}")
                     
                     # Explore the bundle structure
@@ -161,13 +162,13 @@ class StrategyManager:
                     python_zip = os.path.join(resources_dir, 'lib', 'python312.zip')
                     if os.path.exists(python_zip):
                         valid_paths.append(python_zip)
-                        self.logger.debug(f"Added Python ZIP file to path: {python_zip}")
+                        self.logger.info(f"Added Python ZIP file to path: {python_zip}")
                     
                     if valid_paths:
                         current_path = env.get('PYTHONPATH', '')
                         all_paths = os.pathsep.join(valid_paths)
                         env['PYTHONPATH'] = f"{all_paths}{os.pathsep}{current_path}" if current_path else all_paths
-                        self.logger.debug(f"Set PYTHONPATH to: {env['PYTHONPATH']}")
+                        self.logger.info(f"Set PYTHONPATH to: {env['PYTHONPATH']}")
                         pythonpath_set = True
                     
                     if not pythonpath_set:
@@ -184,7 +185,7 @@ class StrategyManager:
                             
                 else:
                     # Running in development
-                    self.logger.debug("Not running in bundle - using system Python environment")
+                    self.logger.info("Not running in bundle - using system Python environment")
                 
                 # Start the process
                 process = subprocess.Popen(
@@ -312,6 +313,13 @@ class StrategyManager:
     def run(self):
         """Main execution method."""
         self.logger.info("SPY Trading Strategies Manager starting...")
+        
+        # Test pandas import in main app
+        try:
+            import pandas as pd
+            self.logger.info(f"SUCCESS: Main app can import pandas from: {pd.__file__}")
+        except ImportError as e:
+            self.logger.error(f"ERROR: Main app cannot import pandas: {e}")
         
         try:
             self.start_strategies()
