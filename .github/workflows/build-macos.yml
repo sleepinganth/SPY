@@ -19,12 +19,15 @@ jobs:
 
       - name: Build .app with py2app
         run: |
-          rm -rf dist/*.app ./build ./dist ./venv_x86 *.egg-info
+          rm -rf ./build ./dist ./venv_x86 *.egg-info
           pip install -r requirements.txt
           pip install py2app
           python setup.py clean --all
           python setup.py py2app --no-strip
 
+      - name: Copy config.yaml to app bundle
+        run: |
+          cp config.yaml ./dist/MacApp.app/Contents/Resources/
 
       - name: Upload .app bundle
         uses: actions/upload-artifact@v4
