@@ -4,7 +4,7 @@ APP = ['main.py']
 OPTIONS = {
     'argv_emulation': False,
     'optimize': 0,
-    'packages': ['pandas', 'numpy', 'ib_insync', 'pytz', 'yaml', 'jaraco'],
+    'packages': ['pandas', 'numpy', 'ib_insync', 'pytz', 'yaml', 'jaraco.text'],
     'includes': ['cmath', 'decimal', 'numbers'],
     'site_packages': True,
     'strip': False,  # Keep debug info for complex packages
