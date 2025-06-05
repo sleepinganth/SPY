@@ -127,6 +127,8 @@ class StrategyManager:
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                     universal_newlines=True,
+                    encoding='utf-8',
+                    errors='replace',
                     bufsize=1,
                     env=env
                 )
