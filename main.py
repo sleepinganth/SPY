@@ -49,13 +49,20 @@ class StrategyManager:
     def _setup_logging(self):
         """Setup logging configuration."""
         log_level = self.config.get('global', {}).get('log_level', 'INFO')
+        
+        # Create handlers with explicit UTF-8 encoding
+        file_handler = logging.FileHandler('strategy_manager.log', encoding='utf-8')
+        stream_handler = logging.StreamHandler(sys.stdout)
+        
+        # Set the same formatter for both handlers
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        file_handler.setFormatter(formatter)
+        stream_handler.setFormatter(formatter)
+        
+        # Configure logging with explicit handlers
         logging.basicConfig(
             level=getattr(logging, log_level),
-            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-            handlers=[
-                logging.FileHandler('strategy_manager.log'),
-                logging.StreamHandler(sys.stdout)
-            ]
+            handlers=[file_handler, stream_handler]
         )
         self.logger = logging.getLogger('StrategyManager')
     
@@ -101,6 +108,11 @@ class StrategyManager:
                 
                 # Set up environment for bundled app
                 env = os.environ.copy()
+                
+                # Force UTF-8 encoding in subprocess environment
+                env['PYTHONIOENCODING'] = 'utf-8'
+                env['LC_ALL'] = 'en_US.UTF-8'
+                env['LANG'] = 'en_US.UTF-8'
                 
                 # Always set PYTHONPATH to match the main app's sys.path
                 # This ensures subprocess has same module search paths as main app
